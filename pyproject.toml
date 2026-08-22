@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "menace-tictactoe"
+version = "1.0.0"
+description = "A Python implementation of MENACE, the matchbox-learning tic-tac-toe AI."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "Your Name"}]
+keywords = ["menace", "tic-tac-toe", "reinforcement-learning", "ai"]
+
+[project.scripts]
+menace = "menace.cli:main"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
