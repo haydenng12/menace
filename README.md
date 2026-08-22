@@ -278,18 +278,3 @@ The keys are possible moves and the values are bead counts. If move `4` repeated
 MENACE was originally implemented physically using hundreds of matchboxes filled with colored beads. It demonstrates that a machine can improve its behavior through rewards and penalties without being explicitly told the best move for every situation.
 
 This implementation keeps the original idea but represents the matchboxes using Python dictionaries and saves learned states as JSON.
-
-## Possible improvements
-
-- board symmetry reduction
-- MENACE vs MENACE self-play
-- training graphs with matplotlib
-- GUI using Tkinter or Pygame
-- visual matchbox/bead inspector
-- compare MENACE against minimax
-- configurable reinforcement rules
-- web demo
-
-## License
-
-MIT License.
