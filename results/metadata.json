@@ -1,0 +1,133 @@
+{
+  "trials_per_condition": 100,
+  "train_games_per_trial": 3000,
+  "evaluation_games_per_checkpoint": 200,
+  "final_evaluation_games": 400,
+  "checkpoint_every": 300,
+  "base_seed": 20260910,
+  "convergence_definition": "first checkpoint after which validation score (win + 0.5*draw) never falls more than 0.05 below final score",
+  "policy_stability_definition": "fraction of shared states whose deterministic greedy action is unchanged across the final two checkpoints",
+  "conditions": [
+    {
+      "name": "baseline",
+      "family": "baseline",
+      "initial_beads": 3,
+      "win_reward": 3,
+      "draw_reward": 1,
+      "loss_penalty": 1,
+      "epsilon": 0.0,
+      "symmetry": true,
+      "opponent": "random"
+    },
+    {
+      "name": "reward_win_heavy",
+      "family": "reward",
+      "initial_beads": 3,
+      "win_reward": 5,
+      "draw_reward": 1,
+      "loss_penalty": 1,
+      "epsilon": 0.0,
+      "symmetry": true,
+      "opponent": "random"
+    },
+    {
+      "name": "reward_no_draw",
+      "family": "reward",
+      "initial_beads": 3,
+      "win_reward": 3,
+      "draw_reward": 0,
+      "loss_penalty": 1,
+      "epsilon": 0.0,
+      "symmetry": true,
+      "opponent": "random"
+    },
+    {
+      "name": "reward_harsh_loss",
+      "family": "reward",
+      "initial_beads": 3,
+      "win_reward": 3,
+      "draw_reward": 1,
+      "loss_penalty": 3,
+      "epsilon": 0.0,
+      "symmetry": true,
+      "opponent": "random"
+    },
+    {
+      "name": "exploration_epsilon_0.10",
+      "family": "exploration",
+      "initial_beads": 3,
+      "win_reward": 3,
+      "draw_reward": 1,
+      "loss_penalty": 1,
+      "epsilon": 0.1,
+      "symmetry": true,
+      "opponent": "random"
+    },
+    {
+      "name": "exploration_epsilon_0.30",
+      "family": "exploration",
+      "initial_beads": 3,
+      "win_reward": 3,
+      "draw_reward": 1,
+      "loss_penalty": 1,
+      "epsilon": 0.3,
+      "symmetry": true,
+      "opponent": "random"
+    },
+    {
+      "name": "symmetry_off",
+      "family": "symmetry",
+      "initial_beads": 3,
+      "win_reward": 3,
+      "draw_reward": 1,
+      "loss_penalty": 1,
+      "epsilon": 0.0,
+      "symmetry": false,
+      "opponent": "random"
+    },
+    {
+      "name": "opponent_self_play",
+      "family": "opponent",
+      "initial_beads": 3,
+      "win_reward": 3,
+      "draw_reward": 1,
+      "loss_penalty": 1,
+      "epsilon": 0.0,
+      "symmetry": true,
+      "opponent": "self_play"
+    },
+    {
+      "name": "opponent_minimax",
+      "family": "opponent",
+      "initial_beads": 3,
+      "win_reward": 3,
+      "draw_reward": 1,
+      "loss_penalty": 1,
+      "epsilon": 0.0,
+      "symmetry": true,
+      "opponent": "minimax"
+    },
+    {
+      "name": "initial_beads_1",
+      "family": "initialization",
+      "initial_beads": 1,
+      "win_reward": 3,
+      "draw_reward": 1,
+      "loss_penalty": 1,
+      "epsilon": 0.0,
+      "symmetry": true,
+      "opponent": "random"
+    },
+    {
+      "name": "initial_beads_10",
+      "family": "initialization",
+      "initial_beads": 10,
+      "win_reward": 3,
+      "draw_reward": 1,
+      "loss_penalty": 1,
+      "epsilon": 0.0,
+      "symmetry": true,
+      "opponent": "random"
+    }
+  ]
+}
