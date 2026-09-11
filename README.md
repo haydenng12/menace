@@ -2,6 +2,29 @@
 
 A from-scratch Python implementation of **MENACE** (**M**atchbox **E**ducable **N**oughts **A**nd **C**rosses **E**ngine), the classic tic-tac-toe learning system created by Donald Michie in the 1960s.
 
+## Research study
+
+This repository now asks a controlled experimental question rather than only demonstrating that MENACE learns:
+
+> **How do reward structure, exploration, symmetry reduction, training opponent, and initialization affect MENACE's convergence and final policy?**
+
+The study contains **11 conditions x 100 independent trials** (1,100 trained agents). The primary symmetry ablation found that canonicalizing rotations and reflections:
+
+- increased held-out win rate from **70.23% to 80.30%**;
+- reduced the learned state space from **2,118.0 to 336.6 matchboxes** (**84.1% fewer**);
+- improved sample efficiency by sharing experience across equivalent boards.
+
+Across all conditions, a stronger loss penalty produced the highest win rate (**85.10%**). Added epsilon exploration hurt performance because bead-proportional sampling already provides exploration, while ten initial beads slowed adaptation within the fixed training budget.
+
+Read the [research design and reproduction guide](RESEARCH.md), the [mini-paper](paper/menace_research_paper.pdf), and the complete results in [`results/`](results/). The repository includes all 1,100 trial-level observations, confidence intervals, metric definitions, recorded seeds, and figure-generation code.
+
+Run the published experiment exactly:
+
+```bash
+python run_experiments.py --trials 100 --train-games 3000 --eval-games 200 --checkpoint-every 300 --seed 20260910 --output results
+python make_figures.py
+```
+
 Instead of using neural networks or minimax, MENACE learns using virtual **matchboxes and beads**. Every board state has a matchbox, and every legal move has a number of beads. MENACE randomly selects a move according to the bead counts and then changes those counts based on whether it won, drew, or lost.
 
 ## How it works

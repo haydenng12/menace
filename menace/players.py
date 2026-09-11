@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import random
+from functools import lru_cache
 from pathlib import Path
 
 from .game import EMPTY, O, X, board_from_key, board_key, is_draw, make_move, valid_moves, winner
@@ -39,6 +40,12 @@ class MinimaxPlayer:
         return best_move
 
     def _minimax(self, board: list[str], current: str, maximizing_symbol: str) -> int:
+        return self._minimax_cached(tuple(board), current, maximizing_symbol)
+
+    @staticmethod
+    @lru_cache(maxsize=None)
+    def _minimax_cached(board_tuple: tuple[str, ...], current: str, maximizing_symbol: str) -> int:
+        board = list(board_tuple)
         win = winner(board)
         if win == maximizing_symbol:
             return 1
@@ -49,7 +56,9 @@ class MinimaxPlayer:
 
         opponent = O if current == X else X
         scores = [
-            self._minimax(make_move(board, move, current), opponent, maximizing_symbol)
+            MinimaxPlayer._minimax_cached(
+                tuple(make_move(board, move, current)), opponent, maximizing_symbol
+            )
             for move in valid_moves(board)
         ]
 
@@ -75,6 +84,9 @@ class MenacePlayer:
         win_reward: int = 3,
         draw_reward: int = 1,
         loss_penalty: int = 1,
+        use_symmetry: bool = True,
+        exploration_epsilon: float = 0.0,
+        rng: random.Random | None = None,
     ) -> None:
         if initial_beads < 1:
             raise ValueError("initial_beads must be at least 1")
@@ -82,6 +94,11 @@ class MenacePlayer:
         self.win_reward = win_reward
         self.draw_reward = draw_reward
         self.loss_penalty = loss_penalty
+        if not 0.0 <= exploration_epsilon <= 1.0:
+            raise ValueError("exploration_epsilon must be between 0 and 1")
+        self.use_symmetry = use_symmetry
+        self.exploration_epsilon = exploration_epsilon
+        self.rng = rng or random.Random()
         self.matchboxes: dict[str, dict[int, int]] = {}
         self.game_history: list[tuple[str, int]] = []
 
@@ -91,15 +108,21 @@ class MenacePlayer:
     def _canonical_matchbox(
         self, board: list[str]
     ) -> tuple[str, dict[int, int], tuple[int, ...]]:
-        canonical = canonicalize(board)
-        canonical_board = board_from_key(canonical.key)
+        canonical = canonicalize(board) if self.use_symmetry else None
+        if canonical is None:
+            key = board_key(board)
+            transform = tuple(range(9))
+        else:
+            key = canonical.key
+            transform = canonical.transform
+        canonical_board = board_from_key(key)
 
-        if canonical.key not in self.matchboxes:
-            self.matchboxes[canonical.key] = {
+        if key not in self.matchboxes:
+            self.matchboxes[key] = {
                 move: self.initial_beads for move in valid_moves(canonical_board)
             }
 
-        return canonical.key, self.matchboxes[canonical.key], canonical.transform
+        return key, self.matchboxes[key], transform
 
     def _ensure_matchbox(self, board: list[str]) -> dict[int, int]:
         """Return the shared canonical matchbox for this board.
@@ -121,7 +144,10 @@ class MenacePlayer:
                 box[move] = self.initial_beads
             weights = [box[m] for m in canonical_moves]
 
-        canonical_move = random.choices(canonical_moves, weights=weights, k=1)[0]
+        if self.rng.random() < self.exploration_epsilon:
+            canonical_move = self.rng.choice(canonical_moves)
+        else:
+            canonical_move = self.rng.choices(canonical_moves, weights=weights, k=1)[0]
 
         # Learning history is stored entirely in canonical coordinates.
         self.game_history.append((key, canonical_move))
@@ -153,6 +179,8 @@ class MenacePlayer:
             "win_reward": self.win_reward,
             "draw_reward": self.draw_reward,
             "loss_penalty": self.loss_penalty,
+            "use_symmetry": self.use_symmetry,
+            "exploration_epsilon": self.exploration_epsilon,
             "matchboxes": {
                 key: {str(move): beads for move, beads in moves.items()}
                 for key, moves in self.matchboxes.items()
@@ -168,17 +196,20 @@ class MenacePlayer:
             win_reward=data["win_reward"],
             draw_reward=data["draw_reward"],
             loss_penalty=data["loss_penalty"],
+            use_symmetry=data.get("use_symmetry", True),
+            exploration_epsilon=data.get("exploration_epsilon", 0.0),
         )
         # Fold saved states into canonical symmetry classes. This also makes
         # older models from pre-symmetry versions load correctly.
         for key, moves in data["matchboxes"].items():
             board = board_from_key(key)
-            canonical = canonicalize(board)
-            target = player.matchboxes.setdefault(canonical.key, {})
+            canonical = canonicalize(board) if player.use_symmetry else None
+            target_key = canonical.key if canonical else key
+            target = player.matchboxes.setdefault(target_key, {})
 
             for move_text, beads in moves.items():
                 original_move = int(move_text)
-                canonical_move = canonical.move_to_canonical(original_move)
+                canonical_move = canonical.move_to_canonical(original_move) if canonical else original_move
                 target[canonical_move] = target.get(canonical_move, 0) + int(beads)
 
         return player
